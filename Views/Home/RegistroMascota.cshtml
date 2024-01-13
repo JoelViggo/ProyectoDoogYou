@@ -1,0 +1,65 @@
+﻿<div class="container mt-5">
+    <div class="card">
+        <div class="card-body">
+            <h2 class="card-title">Registro de Mascotas y Dueños</h2>
+            <button onclick="mostrarFormulario('mascota')">Registrar Mascota</button>
+            <button onclick="mostrarFormulario('dueno')">Registrar Dueño</button>
+        </div>
+    </div>
+
+    <div id="formularioMascota" style="display: none;">
+        <div class="card mt-3">
+            <div class="card-body">
+                <h2 class="card-title">Registro de Mascota</h2>
+                <form id="registroMascota">
+                    <div class="mb-3">
+                        <label for="nombreMascota" class="form-label">Nombre:</label>
+                        <input type="text" class="form-control" id="nombreMascota" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="razaMascota" class="form-label">Raza:</label>
+                        <input type="text" class="form-control" id="razaMascota" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="fechaNacimientoMascota" class="form-label">Fecha de Nacimiento (YYYY-MM-DD):</label>
+                        <input type="text" class="form-control" id="fechaNacimientoMascota" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="sexoMascota" class="form-label">Sexo (M/F):</label>
+                        <input type="text" class="form-control" id="sexoMascota" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="comunaResidenciaMascota" class="form-label">Comuna de Residencia:</label>
+                        <input type="text" class="form-control" id="comunaResidenciaMascota" required>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="registrarMascota()">Registrar Mascota</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="formularioDueno" style="display: none;">
+        <div class="card mt-3">
+            <div class="card-body">
+                <h2 class="card-title">Registro de Dueño</h2>
+                <form id="registroDueno">
+                    <div class="mb-3">
+                        <label for="nombreDueno" class="form-label">Nombre:</label>
+                        <input type="text" class="form-control" id="nombreDueno" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="telefonoDueno" class="form-label">Teléfono:</label>
+                        <input type="text" class="form-control" id="telefonoDueno" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="correoDueno" class="form-label">Correo:</label>
+                        <input type="text" class="form-control" id="correoDueno" required>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="registrarDueno()">Registrar Dueño</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="datosCard" style="display: none;" class="mt-3"></div>
+</div>

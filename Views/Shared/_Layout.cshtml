@@ -12,7 +12,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 </head>
-<body>
+<body class="w-100 d-block">
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
@@ -34,13 +34,14 @@
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
+    <div class="container-fluid pb-4 mb-4">
+            <main class="pb-4 mb-4">
             @RenderBody()
-        </main>
+            </main>
+
     </div>
 
-    <footer class="border-top footer text-muted">
+    <footer class="border-top footer text-muted d-block">
         <div class="container">
             &copy; 2024 - PoryectoDoogYou - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>

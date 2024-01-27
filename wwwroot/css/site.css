@@ -16,3 +16,11 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+.card-object{
+    margin:5px;
+    padding:35px;
+    align-content:center;
+    justify-content:center;
+    box-shadow:rgb(0, 0, 0,0.9) 0px 0px 1px;
+}

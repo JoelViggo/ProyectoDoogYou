@@ -1,6 +1,7 @@
 ﻿// Array para almacenar los usuarios registrados
 let usuariosRegistrados = [];
 let mascotasRegistradas = [];
+
 // Función para mostrar el formulario específico
 function mostrarFormulario(tipo) {
     document.getElementById('formularioMascota').style.display = tipo === 'mascota' ? 'block' : 'none';
@@ -8,98 +9,115 @@ function mostrarFormulario(tipo) {
 }
 
 // Función para registrar una mascota
-function registrarMascota() {
-    let nombre = document.getElementById('nombreMascota').value;
-    let raza = document.getElementById('razaMascota').value;
-    let fechaNacimiento = document.getElementById('fechaNacimientoMascota').value;
-    let sexo = document.getElementById('sexoMascota').value;
-    let comunaResidencia = document.getElementById('comunaResidenciaMascota').value;
+async function registrarMascota() {
+    const nombre = document.getElementById('nombreMascota').value;
+    const raza = document.getElementById('razaMascota').value;
+    const fechaNacimiento = document.getElementById('fechaNacimientoMascota').value;
+    const sexo = document.getElementById('sexoMascota').value;
+    const comunaResidencia = document.getElementById('comunaResidenciaMascota').value;
 
-    if (!nombre || !raza || !fechaNacimiento || !sexo || !comunaResidencia) {
+    if (![nombre, raza, fechaNacimiento, sexo, comunaResidencia].every(Boolean)) {
         alert('Todos los campos son obligatorios');
         return;
     }
 
-    alert('Mascota registrada correctamente');
-    let mascota = { nombre, raza, fechaNacimiento, sexo, comunaResidencia };
-    mascotasRegistradas.push(mascota); // Agregar mascota al array de usuarios registrados
-    mostrarDatosEnCardMascota('Mascotas', mascotasRegistradas);
-    reiniciarFormulario();
+    const mascota = { nombre, raza, fechaNacimiento, sexo, comunaResidencia };
+
+    try {
+        // Convertir el objeto a una cadena JSON
+        const mascotaJSON = JSON.stringify(mascota);
+
+        // Enviar el JSON a un controlador usando fetch con async/await
+        const response = await fetch('/PostData/PostMascota', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: mascotaJSON,
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error al enviar el JSON. Código de estado: ${response.status}`);
+        }
+
+        // Manejar la respuesta del controlador si es necesario
+        const data = await response.json();
+        console.log('Respuesta del controlador:', data);
+
+        alert('Mascota registrada correctamente');
+        mascotasRegistradas.push(mascota);
+        mostrarDatosEnCardMascota('Mascotas', mascotasRegistradas);
+        reiniciarFormulario();
+        var dataPet = { Pets: mascotasRegistradas };
+        localStorage.setItem('dataPet', JSON.stringify(dataPet));
+    } catch (error) {
+        console.error('Error al realizar la solicitud:', error);
+    }
 }
-
-
 // Función para registrar un dueño
 function registrarDueno() {
-    let nombre = document.getElementById('nombreDueno').value;
-    let telefono = document.getElementById('telefonoDueno').value;
-    let correo = document.getElementById('correoDueno').value;
-    let enviarFormMascota = document.getElementById('enviarFormMascota');
-    if (!nombre || !telefono || !correo) {
+    const nombre = document.getElementById('nombreDueno').value;
+    const telefono = document.getElementById('telefonoDueno').value;
+    const correo = document.getElementById('correoDueno').value;
+
+    if (![nombre, telefono, correo].every(Boolean)) {
         alert('Todos los campos son obligatorios');
         return;
     }
-    else {
-        
-        alert('Dueño registrado correctamente');
-        let dueno = { nombre, telefono, correo };
-        usuariosRegistrados.push(dueno); // Agregar dueño al array de usuarios registrados
-        
-        enviarFormMascota.addEventListener('click', function () {
-            mostrarFormulario('mascota');
-        });
-        mostrarDatosEnCardUsuario('Dueño', usuariosRegistrados);
-    }
+
+    alert('Dueño registrado correctamente');
+    const dueno = { nombre, telefono, correo };
+    usuariosRegistrados.push(dueno);
+
+    var datos = { Users: usuariosRegistrados };
+    localStorage.setItem('dataUsers', JSON.stringify(datos));
     reiniciarFormulario();
-    
 }
 // Función para mostrar los datos en una card
 function mostrarDatosEnCardMascota(tipo, datos) {
-    let cardHtml = `<div class="container"><div class="row row-cols-1 row-cols-md-auto rows-cols-sm-auto"><h5 class="card-title col-12">${tipo}</h5>`;
-
-    // Iterar sobre los elementos del array 'datos'
-    for (let i = 0; i < datos.length; i++) {
-        let item = datos[i];
-        cardHtml += `<div class="card-object col-3>`; // Abrir un nuevo div para cada item
-
-        // Iterar sobre las propiedades de cada item
-        for (let propiedad in item) {
-            if (Object.prototype.hasOwnProperty.call(item, propiedad)) {
-                cardHtml += `<p class="card-text"><strong>${propiedad.replace(/([a-z])([A-Z])/g, '$1 $2')}:</strong> ${item[propiedad]}</p>`;
-            }
-        }
-
-        cardHtml += `</div>`; // Cerrar el div del item
+    // Verificar si hay datos en la posición 0 del array
+    if (!datos) {
+        console.error('Datos no válidos.');
+        return;
     }
 
-    cardHtml += '</div></div>';
-    document.getElementById('datosCard').innerHTML = cardHtml;
-    document.getElementById('datosCard').style.display = 'block';
-
-}
-
-// Función para mostrar los datos en una card
-function mostrarDatosEnCardUsuario(tipo, datos) {
+    let propiedades = datos;
     let cardHtml = `<div class="card"><div class="card-body"><h5 class="card-title">${tipo}</h5>`;
 
-    // Iterar sobre los elementos del array 'datos'
-    for (let i = 0; i < datos.length; i++) {
-        let item = datos[i];
-        cardHtml += `<div class="item">`; // Abrir un nuevo div para cada item
-
-        // Iterar sobre las propiedades de cada item
-        for (let propiedad in item) {
-            if (Object.prototype.hasOwnProperty.call(item, propiedad)) {
-                cardHtml += `<p class="card-text"><strong>${propiedad.replace(/([a-z])([A-Z])/g, '$1 $2')}:</strong> ${item[propiedad]}</p>`;
-            }
-        }
-
+    // Iterar sobre las propiedades
+    Object.entries(propiedades).forEach(([clave, valor]) => {
+        cardHtml += `<div class="item">`;
+        cardHtml += `<p class="card-text"><strong>${clave}:</strong> ${valor}</p>`;
         cardHtml += `</div>`;
-    }
+    });
 
     cardHtml += '</div></div>';
-    document.getElementById('datosCard').innerHTML = cardHtml;
-    document.getElementById('datosCard').style.display = 'block';
+    document.getElementById('datosCardPet').innerHTML = cardHtml;
+    document.getElementById('datosCardPet').style.display = 'block';
 }
+// Función para mostrar los datos en una card
+function mostrarDatosEnCardUsuario(tipo, datos) {
+    // Verificar si hay datos en la posición 0 del array
+    if (!datos || !datos[0]) {
+        console.error('Datos no válidos.');
+        return;
+    }
+
+    const propiedades = datos[0];
+    let cardHtml = `<div class="card"><div class="card-body"><h5 class="card-title">${tipo}</h5>`;
+
+    // Iterar sobre las propiedades
+    Object.entries(propiedades).forEach(([clave, valor]) => {
+        cardHtml += `<div class="item">`;
+        cardHtml += `<p class="card-text"><strong>${clave}:</strong> ${valor}</p>`;
+        cardHtml += `</div>`;
+    });
+
+    cardHtml += '</div></div>';
+    document.getElementById('datosCardUsers').innerHTML = cardHtml;
+    document.getElementById('datosCardUsers').style.display = 'block';
+}
+
 
 
 // Ejemplo de filtro de usuarios por tipo (mascota o dueño)
@@ -153,3 +171,42 @@ function reiniciarFormulario() {
     document.getElementById('registroMascota').reset();
     document.getElementById('registroDueno').reset();
 }
+
+
+// Obtener datos de localStorage
+function MostarUser() {
+    let datos = localStorage.getItem('dataUsers');
+    if (datos) {
+        datos = JSON.parse(datos);
+        let usuarios = datos.Users;
+
+        console.log(usuarios); // Esto muestra todo el array de usuarios
+
+        for (let usuario of usuarios) {
+            console.log(usuario); // Esto muestra cada usuario individualmente
+            mostrarDatosEnCardUsuario('Dueño', [usuario]); // Pasa un array con el usuario a la función
+        }
+    } else {
+        console.log("No hay datos almacenados.");
+    }
+}
+
+
+function ShowPet() {
+    let datos = localStorage.getItem('dataPet');
+    if (datos) {
+        datos = JSON.parse(datos);
+        console.log(datos.Pets);
+        for (const mascota of datos.Pets) {
+            mostrarDatosEnCardMascota('Mascota', mascota);
+        }
+    } else {
+        console.log("No hay Mascotas almacenadas");
+    }
+}
+
+
+document.addEventListener("DOMContentLoaded", () => {
+    MostarUser();
+    ShowPet();
+});

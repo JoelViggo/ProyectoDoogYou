@@ -1,212 +1,483 @@
-﻿// Array para almacenar los usuarios registrados
-let usuariosRegistrados = [];
-let mascotasRegistradas = [];
+﻿var users = JSON.parse(localStorage.getItem('users')) || [{
+    user: "user",
+    pass: "pass"
+}];
+var products = [];
 
-// Función para mostrar el formulario específico
-function mostrarFormulario(tipo) {
-    document.getElementById('formularioMascota').style.display = tipo === 'mascota' ? 'block' : 'none';
-    document.getElementById('formularioDueno').style.display = tipo === 'dueno' ? 'block' : 'none';
-}
 
-// Función para registrar una mascota
-async function registrarMascota() {
-    const nombre = document.getElementById('nombreMascota').value;
-    const raza = document.getElementById('razaMascota').value;
-    const fechaNacimiento = document.getElementById('fechaNacimientoMascota').value;
-    const sexo = document.getElementById('sexoMascota').value;
-    const comunaResidencia = document.getElementById('comunaResidenciaMascota').value;
+function showSection(section) {
+    if (section === "login") {
+        document.getElementById('login').style.display = 'block';
+        document.getElementById('register').style.display = 'none';
+        document.getElementById('products').style.display = 'none';
+        document.getElementById('buy').style.display = 'none';
 
-    if (![nombre, raza, fechaNacimiento, sexo, comunaResidencia].every(Boolean)) {
-        alert('Todos los campos son obligatorios');
-        return;
+        document.getElementById('cart').style.display = 'none';
+    }
+    if (section === "products") {
+        document.getElementById('buy').style.display = 'none';
+
+        document.getElementById('login').style.display = 'none';
+        document.getElementById('register').style.display = 'none';
+        document.getElementById('products').style.display = 'block';
+        document.getElementById('cart').style.display = 'block';
+
+    } 
+    if (section === "register") {
+        document.getElementById('buy').style.display = 'none';
+
+        document.getElementById('login').style.display = 'none';
+        document.getElementById('register').style.display = 'block';
+        document.getElementById('products').style.display = 'none';
+        document.getElementById('cart').style.display = 'block';
     }
 
-    const mascota = { nombre, raza, fechaNacimiento, sexo, comunaResidencia };
+    if (section === "buy") {
+        document.getElementById('login').style.display = 'none';
+        document.getElementById('register').style.display = 'none';
+        document.getElementById('products').style.display = 'none';
+        document.getElementById('buy').style.display = 'block';
+        document.getElementById('cart').style.display = 'block';
+    }
+}
 
+
+function login() {
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    const loginMessage = document.getElementById('loginMessage');
+
+    users = JSON.parse(localStorage.getItem('users')) || [];
+
+    const user = users.find(u => u.user === username && u.pass === password);
+
+    if (user) {
+        loginMessage.textContent = 'Inicio de sesión exitoso.';
+        setTimeout(() => {
+            showSection("products");
+            swal.fire(`Bienvenido ${username}`,"Ingreso Exitoso","success")
+        }, 1000);
+    } else {
+        loginMessage.textContent = 'Nombre de usuario o contraseña incorrectos.';
+        swal.fire(`${loginMessage.textContent}`, "Ingreso Fallido", "error");
+        
+        
+    }
+}
+
+function register() {
+    const newUsername = document.getElementById('newUsername').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const registerMessage = document.getElementById('registerMessage');
+
+    users = JSON.parse(localStorage.getItem('users')) || [];
+
+    const userExists = users.some(u => u.user === newUsername);
+
+    if (userExists) {
+        registerMessage.textContent = 'El nombre de usuario ya está en uso.';
+        swal.fire(registerMessage.textContent,"Error","error")
+    } else {
+        // Agregar el nuevo usuario al arreglo y actualizar localStorage
+        users.push({ user: newUsername, pass: newPassword });
+        localStorage.setItem('users', JSON.stringify(users));
+        registerMessage.textContent = `Usuario ${newUsername} registrado exitosamente.`;
+
+        // Opcionalmente, iniciar sesión automáticamente después del registro
+        // Simulamos un inicio de sesión exitoso
+        setTimeout(() => {
+            swal.fire(`Bienvenido ${newUsername}`, "Ingreso Exitoso", "success")
+            showSection("products");
+        }, 1000);
+    }
+}
+async function loadProducts() {
     try {
-        // Convertir el objeto a una cadena JSON
-        const mascotaJSON = JSON.stringify(mascota);
+        const response = await fetch('https://fakestoreapi.com/products');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const products = await response.json();
+        
 
-        // Enviar el JSON a un controlador usando fetch con async/await
-        const response = await fetch('/PostData/PostMascota', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: mascotaJSON,
+        const productsSection = document.getElementById('products');
+        const productsContainer = productsSection.querySelector('.products');
+
+        // Crear el carrusel
+        const carouselContainer = document.createElement('div');
+        carouselContainer.classList.add('carousel', 'slide', 'c-slide');
+        carouselContainer.setAttribute('data-ride', 'carousel');
+
+        const carouselInner = document.createElement('div');
+        carouselInner.classList.add('carousel-inner');
+
+        products.forEach((product, index) => {
+            const carouselItem = document.createElement('div');
+            carouselItem.classList.add('carousel-item');
+            if (index === 0) {
+                carouselItem.classList.add('active');
+            }
+
+            const card = document.createElement('div');
+            card.classList.add('card');
+
+            const imgElement = document.createElement('img');
+            imgElement.classList.add('card-img-top');
+            imgElement.src = product.image;
+
+            const cardBody = document.createElement('div');
+            cardBody.classList.add('card-body');
+
+            const titleElement = document.createElement('h5');
+            titleElement.classList.add('card-title');
+            titleElement.textContent = product.title;
+
+            const priceElement = document.createElement('p');
+            priceElement.classList.add('card-text', 'text-card');
+            priceElement.textContent = `$${product.price}`;
+
+            cardBody.appendChild(titleElement);
+            cardBody.appendChild(priceElement);
+
+            card.appendChild(imgElement);
+            card.appendChild(cardBody);
+
+            carouselItem.appendChild(card);
+            carouselInner.appendChild(carouselItem);
         });
 
-        if (!response.ok) {
-            throw new Error(`Error al enviar el JSON. Código de estado: ${response.status}`);
-        }
+        carouselContainer.appendChild(carouselInner);
+        productsContainer.appendChild(carouselContainer);
 
-        // Manejar la respuesta del controlador si es necesario
-        const data = await response.json();
-        console.log('Respuesta del controlador:', data);
+        // Agregar controles de navegación al carrusel
+        addCarouselNavigation(carouselContainer);
 
-        alert('Mascota registrada correctamente');
-        mascotasRegistradas.push(mascota);
-        mostrarDatosEnCardMascota('Mascotas', mascotasRegistradas);
-        reiniciarFormulario();
-        var dataPet = { Pets: mascotasRegistradas };
-        localStorage.setItem('dataPet', JSON.stringify(dataPet));
+        // Iniciar el carrusel
+        new bootstrap.Carousel(carouselContainer);
     } catch (error) {
-        console.error('Error al realizar la solicitud:', error);
+        console.error('Error al cargar productos:', error);
     }
 }
-// Función para registrar un dueño
-function registrarDueno() {
-    const nombre = document.getElementById('nombreDueno').value;
-    const telefono = document.getElementById('telefonoDueno').value;
-    const correo = document.getElementById('correoDueno').value;
 
-    if (![nombre, telefono, correo].every(Boolean)) {
-        alert('Todos los campos son obligatorios');
-        return;
-    }
+function addCarouselNavigation(carouselContainer) {
+    const prevButton = navButton('prev');
+    const nextButton = navButton('next');
 
-    alert('Dueño registrado correctamente');
-    const dueno = { nombre, telefono, correo };
-    usuariosRegistrados.push(dueno);
+    carouselContainer.appendChild(prevButton);
+    carouselContainer.appendChild(nextButton);
 
-    var datos = { Users: usuariosRegistrados };
-    localStorage.setItem('dataUsers', JSON.stringify(datos));
-    reiniciarFormulario();
-}
-// Función para mostrar los datos en una card
-function mostrarDatosEnCardMascota(tipo, datos) {
-    // Verificar si hay datos en la posición 0 del array
-    if (!datos) {
-        console.error('Datos no válidos.');
-        return;
-    }
+    carouselContainer.addEventListener('click', function (event) {
+        const target = event.target;
+        const carousel = bootstrap.Carousel.getInstance(carouselContainer);
 
-    let propiedades = datos;
-    let cardHtml = `<div class="card"><div class="card-body"><h5 class="card-title">${tipo}</h5>`;
-
-    // Iterar sobre las propiedades
-    Object.entries(propiedades).forEach(([clave, valor]) => {
-        cardHtml += `<div class="item">`;
-        cardHtml += `<p class="card-text"><strong>${clave}:</strong> ${valor}</p>`;
-        cardHtml += `</div>`;
-    });
-
-    cardHtml += '</div></div>';
-    document.getElementById('datosCardPet').innerHTML = cardHtml;
-    document.getElementById('datosCardPet').style.display = 'block';
-}
-// Función para mostrar los datos en una card
-function mostrarDatosEnCardUsuario(tipo, datos) {
-    // Verificar si hay datos en la posición 0 del array
-    if (!datos || !datos[0]) {
-        console.error('Datos no válidos.');
-        return;
-    }
-
-    const propiedades = datos[0];
-    let cardHtml = `<div class="card"><div class="card-body"><h5 class="card-title">${tipo}</h5>`;
-
-    // Iterar sobre las propiedades
-    Object.entries(propiedades).forEach(([clave, valor]) => {
-        cardHtml += `<div class="item">`;
-        cardHtml += `<p class="card-text"><strong>${clave}:</strong> ${valor}</p>`;
-        cardHtml += `</div>`;
-    });
-
-    cardHtml += '</div></div>';
-    document.getElementById('datosCardUsers').innerHTML = cardHtml;
-    document.getElementById('datosCardUsers').style.display = 'block';
-}
-
-
-
-// Ejemplo de filtro de usuarios por tipo (mascota o dueño)
-function filtrarMascotasPorNombre() {
-    let input = document.getElementById('buscarMascota');
-
-    // agregar evento 'input' al input
-    input.addEventListener('input', function () {
-        // Obtener el valor actual del input
-        let valor = input.value;
-        let mascotasFiltradas = mascotasRegistradas.filter((mascota) => mascota.nombre.includes(valor));
-        mostrarResultados("Mascota", mascotasFiltradas);
-        
-    });
-}
-
-function mostrarResultados(tipo,datos = null) {
-    let cardHtml = `<div class="card"><div class="card-body"><h5 class="card-title">${tipo}</h5>`;
-
-    // Iterar sobre los elementos del array 'datos'
-    for (let i = 0; i < datos.length; i++) {
-        let item = datos[i];
-        cardHtml += `<div class="item">`; // Abrir un nuevo div para cada item
-
-        // Iterar sobre las propiedades de cada item
-        for (let propiedad in item) {
-            if (Object.prototype.hasOwnProperty.call(item, propiedad)) {
-                cardHtml += `<p class="card-text"><strong>${propiedad.replace(/([a-z])([A-Z])/g, '$1 $2')}:</strong> ${item[propiedad]}</p>`;
-            }
+        if (target.closest('.carousel-control-prev')) {
+            carousel.prev();
+        } else if (target.closest('.carousel-control-next')) {
+            carousel.next();
         }
-
-        cardHtml += `</div>`; // cerrar el div del item
-    }
-
-    cardHtml += '</div></div>';
-    document.getElementById('datosMascota').innerHTML = cardHtml;
-    document.getElementById('datosMascota').style.display = 'block';
-}
-// mapeo de mascotass para obtener solo los nombres
-function obtenerNombresMascota() {
-    return mascotasRegistradas.map(mascota => mascota.nombre);
+    });
 }
 
-// reducción para contar la cantidad total de usuarios
-function contarUsuarios() {
-    return usuariosRegistrados.reduce((total, usuario) => total + 1, 0);
+//Para navegar entre los productos
+function navButton(direction) {
+    const button = document.createElement('a');
+    button.classList.add(`carousel-control-${direction}`);
+    button.setAttribute('role', 'button');
+    button.setAttribute('data-slide', direction);
+    button.innerHTML = `
+        <span class="carousel-control-${direction}-icon" aria-hidden="true"></span>
+        <span class="sr-only">${direction === 'prev' ? 'Previous' : 'Next'}</span>
+    `;
+    return button;
 }
+function addToCart(product) {
+    let cart;
+    const cartData = localStorage.getItem('cart');
 
-
-function reiniciarFormulario() {
-    document.getElementById('registroMascota').reset();
-    document.getElementById('registroDueno').reset();
-}
-
-
-// Obtener datos de localStorage
-function MostarUser() {
-    let datos = localStorage.getItem('dataUsers');
-    if (datos) {
-        datos = JSON.parse(datos);
-        let usuarios = datos.Users;
-
-        console.log(usuarios); // Esto muestra todo el array de usuarios
-
-        for (let usuario of usuarios) {
-            console.log(usuario); // Esto muestra cada usuario individualmente
-            mostrarDatosEnCardUsuario('Dueño', [usuario]); // Pasa un array con el usuario a la función
+    if (cartData) {
+        try {
+            cart = JSON.parse(cartData);
+        } catch (error) {
+            console.error('Error parsing cart from localStorage:', error);
+            cart = [];
         }
     } else {
-        console.log("No hay datos almacenados.");
+        cart = [];
     }
+
+    // Guarda el carrito actualizado de nuevo en localStorage
+    cart.push(product);
+    localStorage.setItem('cart', JSON.stringify(cart));
+
+    // Actualiza la cuenta del carrito en la UI
+    updateCartCount();
+
+    // Mostrar mensaje de confirmación
+    const confirmationMessage = document.createElement('div');
+    confirmationMessage.textContent = `${product.title} agregado al carrito.`;
+    confirmationMessage.classList.add('confirmation-message');
+    document.body.appendChild(confirmationMessage);
+
+    // Desvanecer el mensaje después de 2 segundos
+    setTimeout(() => {
+        confirmationMessage.remove();
+    }, 2000);
 }
 
+function buyProducts() {
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    const cartBuyContainer = document.getElementById('cartBuy');
+    const totalCart = document.getElementById('TotalCart');
+    totalCart.classList.add('bg-white', 'm-2');
 
-function ShowPet() {
-    let datos = localStorage.getItem('dataPet');
-    if (datos) {
-        datos = JSON.parse(datos);
-        console.log(datos.Pets);
-        for (const mascota of datos.Pets) {
-            mostrarDatosEnCardMascota('Mascota', mascota);
-        }
+    // Limpiar el contenedor antes de añadir nuevos productos y resetear el total
+    cartBuyContainer.innerHTML = '';
+    totalCart.innerHTML = 'Total: ';
+
+    // Crear un contenedor para la lista de productos
+    let totalItems = 0;
+    let totalPrice = 0;
+
+
+    const productList = document.createElement('ul');
+    productList.classList.add('list-group', 'm-2');
+
+    if (cart.length > 0) {
+        cart.forEach((product, index) => {
+            const productItem = document.createElement('li');
+            productItem.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center', 'm-3');
+
+            const productInfo = document.createElement('div');
+            productInfo.innerHTML = `<strong>${product.title}</strong> - $${product.price}`;
+
+            const productImage = document.createElement('img');
+            productImage.src = product.image;
+            productImage.alt = product.title;
+            productImage.style.width = '50px';
+            productImage.style.height = '50px';
+            productImage.classList.add('img-thumbnail');
+
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = 'Eliminar';
+            deleteButton.classList.add('btn', 'btn-danger');
+            deleteButton.onclick = function () { removeProductFromCart(index); };
+            
+            productItem.appendChild(productImage);
+            productItem.appendChild(productInfo);
+            productItem.appendChild(deleteButton); 
+            productList.appendChild(productItem);
+
+            totalItems += 1;
+            totalPrice += parseFloat(product.price);
+        });
+
+        cartBuyContainer.appendChild(productList);
     } else {
-        console.log("No hay Mascotas almacenadas");
+        totalItems = 0;
+        totalPrice = 0;
+        cartBuyContainer.innerHTML = '<p class="text-white text-center">No hay productos en el carrito.</p>';
+    }
+
+    totalCart.innerHTML += `${cart.length} ítem(s) - $${totalPrice.toFixed(2)}`;
+
+    showSection('buy');
+}
+
+function removeProductFromCart(index) {
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    cart.splice(index, 1); // Elimina el producto en el índice dado
+    localStorage.setItem('cart', JSON.stringify(cart)); // Actualiza el carrito en localStorage
+    buyProducts(); // Refresca la interfaz de usuario del carrito para mostrar el carrito actualizado
+    updateCartCount();
+}
+
+function updateCartCount() {
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    document.getElementById('cartItemCount').textContent = cart.length;
+
+}
+// Arreglo que almacenará todos los productos obtenidos de la API
+var allProducts = [];
+
+// Función para cargar todos los productos desde la API de FakeStoreAPI
+function loadAllProducts() {
+    fetch('https://fakestoreapi.com/products')
+        .then(response => response.json())
+        .then(products => {
+            allProducts = products;
+        })
+        .catch(error => console.error('Error al cargar productos:', error));
+}
+
+function displayProducts(products) {
+    const searchResultsContainer = document.getElementById('searchResults');
+
+    // Limpiar el contenedor de resultados de búsqueda
+    searchResultsContainer.innerHTML = '';
+
+    // Mostrar los productos buscados como tarjetas
+    if (products.length > 0) {
+        products.forEach(product => {
+            // Crear tarjeta para cada producto
+            const card = document.createElement('div');
+            card.classList.add('card', 'm-2');
+
+            const cardBody = document.createElement('div');
+            cardBody.classList.add('card-body');
+
+            const imgElement = document.createElement('img');
+            imgElement.classList.add('card-img-top');
+            imgElement.src = product.image;
+
+            const titleElement = document.createElement('h5');
+            titleElement.classList.add('card-title');
+            titleElement.textContent = product.title;
+
+            const priceElement = document.createElement('p');
+            priceElement.classList.add('card-text');
+            priceElement.textContent = `$${product.price}`;
+
+            const addToCartButton = document.createElement('button');
+            addToCartButton.classList.add('btn', 'btn-primary');
+            addToCartButton.textContent = 'Comprar';
+            // Agregar evento click para agregar el producto al carrito
+            addToCartButton.addEventListener('click', function () {
+                addToCart(product);
+            });
+
+            cardBody.appendChild(imgElement);
+            cardBody.appendChild(titleElement);
+            cardBody.appendChild(priceElement);
+            cardBody.appendChild(addToCartButton);
+
+            card.appendChild(cardBody);
+
+            // Agregar la tarjeta al contenedor de resultados de búsqueda
+            searchResultsContainer.appendChild(card);
+        });
+    } else {
+        // Mostrar un mensaje si no se encontraron productos
+        searchResultsContainer.innerHTML = '<p>No se encontraron productos que coincidan con la búsqueda.</p>';
     }
 }
 
 
-document.addEventListener("DOMContentLoaded", () => {
-    MostarUser();
-    ShowPet();
+
+// Llamar a la función para cargar todos los productos al inicio
+loadAllProducts();
+
+
+
+
+
+
+
+
+
+document.getElementById('searchInput').addEventListener('input', function() {
+    const searchValue = this.value.toLowerCase().trim();
+    const filteredProducts = allProducts.filter(product => product.title.toLowerCase().includes(searchValue));
+    displayProducts(filteredProducts);
 });
+
+function displayProducts(products) {
+    const searchResultsContainer = document.getElementById('searchResults');
+
+    if (products.length > 0) {
+        products.forEach(product => {
+            // Crear tarjeta para cada producto
+            const card = document.createElement('div');
+            card.classList.add('card', 'm-2');
+
+            const cardBody = document.createElement('div');
+            cardBody.classList.add('card-body');
+
+            const imgElement = document.createElement('img');
+            imgElement.classList.add('card-img-top');
+            imgElement.src = product.image;
+
+            const titleElement = document.createElement('h5');
+            titleElement.classList.add('card-title');
+            titleElement.textContent = product.title;
+
+            const priceElement = document.createElement('p');
+            priceElement.classList.add('card-text');
+            priceElement.textContent = `$${product.price}`;
+
+            const addToCartButton = document.createElement('button');
+            addToCartButton.classList.add('btn', 'btn-primary');
+            addToCartButton.textContent = 'Comprar';
+            // Agregar evento click para agregar el producto al carrito
+            addToCartButton.addEventListener('click', function () {
+                addToCart(product);
+            });
+
+            cardBody.appendChild(imgElement);
+            cardBody.appendChild(titleElement);
+            cardBody.appendChild(priceElement);
+            cardBody.appendChild(addToCartButton);
+
+            card.appendChild(cardBody);
+
+            // Agregar la tarjeta al contenedor de resultados de búsqueda
+            searchResultsContainer.appendChild(card);
+        });
+    } else {
+        searchResultsContainer.innerHTML = '<p>No se encontraron productos que coincidan con la búsqueda.</p>';
+    }
+}
+
+
+
+function calculateTotal(cart) {
+    cart.forEach(item => {
+        item.price = Number(item.price);
+        item.quantity = Number(item.quantity || 1); 
+    });
+
+    return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+}
+function displayPaymentSummary() {
+    
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    let total = calculateTotal(cart);
+    let productNamesHtml = `<ul style="text-align: left;">${cart.map(item => `<li>${item.title} - $${item.price}</li>`).join('')}</ul>`;
+
+
+    // Usando SweetAlert para mostrar el resumen del pago
+    swal.fire({
+        title: 'Confirmación de Pago',
+        html: `<p>Estás a punto de pagar $${total} por los siguientes productos:</p>${productNamesHtml}`,
+        icon: 'info',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Pagar Ahora'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            swal.fire(
+                'Pago Realizado',
+                'Tu pago ha sido completado exitosamente.',
+                'success'
+            );
+            
+            localStorage.setItem('cart', JSON.stringify([]));
+            cart.forEach((product, index) => {
+                removeProductFromCart(index)
+            })
+
+        }
+    });
+
+    updateCartCount();
+}
+
+
+
+window.onload = function () {
+    loadProducts();
+    localStorage.setItem('cart', products);
+    document.getElementById('PagarCart').addEventListener('click', () => {
+        displayPaymentSummary();
+    })
+}

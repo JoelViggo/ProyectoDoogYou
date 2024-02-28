@@ -1,6 +1,6 @@
 ﻿namespace PoryectoDoogYou.Models
 {
-    public class UsuarioDueñoModel
+    public class UsuarioModel
     {
         public int? idDueño { get; set; }
         public string? nombreDueño { get; set; }
@@ -11,7 +11,9 @@
         public string? residencia { get; set; }
         public string? descripcion { get; set;}
         public string? comuna { get; set; }
-        public List<MascotaModel> idMascota { get; set;}
+        public string? contraseña { get; set; }
+        public string? usuario { get; set; }
+        public int idMascota { get; set;}
 
 
 
